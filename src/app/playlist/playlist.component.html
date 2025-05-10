@@ -1,0 +1,153 @@
+<h2>🎵 Spotify Playlist 🎵</h2>
+
+<!-- Campo de búsqueda para filtrar por nombre -->
+<div style="margin-bottom: 20px;">
+  <input [(ngModel)]="nombre" placeholder="Buscar Playlist por nombre"
+         style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;" />
+  <button (click)="getPlayListByNombre()"
+          style="background-color: #28a745; color: white; padding: 10px 20px; border: none; 
+                 border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-left: 10px;">
+    Filtrar por nombre
+  </button>
+  <!-- Botón para limpiar filtro -->
+  <button (click)="limpiarFiltro()"
+          style="background-color: #6c757d; color: white; padding: 10px 20px; border: none;
+                 border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-left: 10px;">
+    Limpiar Filtro
+  </button>
+</div>
+
+<!-- Mostrar los resultados filtrados en formato grilla -->
+<div *ngIf="playlistBuscada">
+  <div *ngFor="let playlist of [playlistBuscada]" 
+       style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h3 style="margin: 0;">{{ playlist.nombre }}</h3>
+        <p style="margin: 4px 0 8px 0;">{{ playlist.descripcion }}</p>
+      </div>
+      <div>
+        <button (click)="toggleDetalle(playlist.nombre)"
+                style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 10px;">
+          {{ expandedPlaylists.has(playlist.nombre) ? 'Ocultar' : 'Mostrar' }} canciones
+        </button>
+        <button (click)="deletePlaylist(playlist.nombre)"
+                style="background-color: crimson; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="expandedPlaylists.has(playlist.nombre)" style="margin-top: 10px;">
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); font-weight: bold; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
+        <div>Título</div>
+        <div>Artista</div>
+        <div>Álbum</div>
+        <div>Año</div>
+        <div>Género</div>
+      </div>
+      <div *ngFor="let cancion of playlist.canciones"
+           style="display: grid; grid-template-columns: repeat(5, 1fr); padding: 10px; border-bottom: 1px solid #eee;">
+        <div>{{ cancion.titulo }}</div>
+        <div>{{ cancion.artista }}</div>
+        <div>{{ cancion.album }}</div>
+        <div>{{ cancion.anno }}</div>
+        <div>{{ cancion.genero }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mostrar todas las playlists si no hay filtro aplicado -->
+<div *ngIf="!playlistBuscada">
+  <div *ngFor="let playlist of playlists" 
+       style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h3 style="margin: 0;">{{ playlist.nombre }}</h3>
+        <p style="margin: 4px 0 8px 0;">{{ playlist.descripcion }}</p>
+      </div>
+      <div>
+        <button (click)="toggleDetalle(playlist.nombre)"
+                style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 10px;">
+          {{ expandedPlaylists.has(playlist.nombre) ? 'Ocultar' : 'Mostrar' }} canciones
+        </button>
+        <button (click)="deletePlaylist(playlist.nombre)"
+                style="background-color: crimson; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="expandedPlaylists.has(playlist.nombre)" style="margin-top: 10px;">
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); font-weight: bold; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
+        <div>Título</div>
+        <div>Artista</div>
+        <div>Álbum</div>
+        <div>Año</div>
+        <div>Género</div>
+      </div>
+      <div *ngFor="let cancion of playlist.canciones"
+           style="display: grid; grid-template-columns: repeat(5, 1fr); padding: 10px; border-bottom: 1px solid #eee;">
+        <div>{{ cancion.titulo }}</div>
+        <div>{{ cancion.artista }}</div>
+        <div>{{ cancion.album }}</div>
+        <div>{{ cancion.anno }}</div>
+        <div>{{ cancion.genero }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Botón para abrir el modal -->
+<button (click)="abrirModal()"
+        style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 8px;
+               font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 30px;">
+  ➕ Crear Nueva Playlist
+</button>
+
+<!-- Modal -->
+<dialog #modal style="border: none; border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.25); width: 600px; max-width: 95%; font-family: 'Segoe UI', sans-serif;">
+  
+  <form (ngSubmit)="crearPlaylist(); cerrarModal()" method="dialog"
+        style="padding: 24px; background: #ffffff; display: flex; flex-direction: column; gap: 20px;">
+    
+    <h2 style="margin: 0; color: #333; text-align: center; font-size: 1.5rem;">🎵 Crear Nueva Playlist</h2>
+
+    <input [(ngModel)]="nuevaPlaylist.nombre" name="nombre"
+           placeholder="Nombre de la Playlist" required
+           style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;" />
+
+    <input [(ngModel)]="nuevaPlaylist.descripcion" name="descripcion"
+           placeholder="Descripción"
+           style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;" />
+
+    <button type="button" (click)="agregarCancion()"
+            style="background-color: #28a745; color: white; padding: 8px 16px; border: none;
+                   border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer;">
+      ➕ Agregar Canción
+    </button>
+
+    <div *ngFor="let cancion of nuevaPlaylist.canciones; let i = index"
+    style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+      <input [(ngModel)]="cancion.titulo" name="titulo{{i}}" placeholder="Título" required />
+      <input [(ngModel)]="cancion.artista" name="artista{{i}}" placeholder="Artista" />
+      <input [(ngModel)]="cancion.album" name="album{{i}}" placeholder="Álbum" />
+      <input [(ngModel)]="cancion.anno" name="anno{{i}}" placeholder="Año" />
+      <input [(ngModel)]="cancion.genero" name="genero{{i}}" placeholder="Género" />
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+      <button type="submit"
+              style="background-color: #007bff; color: white; padding: 8px 16px; border: none;
+                     border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer;">
+        💾 Guardar Playlist
+      </button>
+      <button type="button" (click)="cerrarModal()"
+              style="background-color: #6c757d; color: white; padding: 8px 16px; border: none;
+                     border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer;">
+        ✖ Cancelar
+      </button>
+    </div>
+  </form>
+</dialog>
